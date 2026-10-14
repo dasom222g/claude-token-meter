@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="330" viewBox="0 0 820 330" role="img" aria-label="token-meter in the desktop app Code tab, while working and after the turn">
+<rect x="0.5" y="0.5" width="819" height="329" rx="10" fill="#151515" stroke="#2A2A2A"/>
+<g font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Apple SD Gothic Neo', 'Segoe UI', 'Malgun Gothic', sans-serif" font-size="14">
+<rect x="24" y="24" width="772" height="40" rx="10" fill="#212121"/>
+<text x="40" y="49" fill="#89877F" font-family="'SF Mono', Menlo, Consolas, monospace" font-size="13">my-project  main</text>
+<rect x="626" y="32" width="68" height="24" rx="6" fill="#373737"/>
+<text x="635" y="49" font-family="'SF Mono', Menlo, Consolas, monospace" font-size="13"><tspan fill="#6BD45F">+13</tspan><tspan fill="#EB445B" dx="4">−27</tspan></text>
+<rect x="700" y="32" width="62" height="24" rx="6" fill="#373737"/>
+<text x="709" y="49" fill="#F0EFEC" font-size="13">PR 생성</text>
+<text x="774" y="49" fill="#89877F" font-size="14">✕</text>
+<rect x="24" y="70" width="772" height="40" rx="10" fill="#212121"/>
+<text x="38" y="95" xml:space="preserve"><tspan fill="#B96748" font-weight="700">✶</tspan><tspan fill="#89877F" dx="7">작업 중</tspan><tspan fill="#B96748" dx="7" font-weight="700">↓ 1,284 tokens</tspan><tspan fill="#89877F" dx="7">12s</tspan><tspan fill="#4AA130" dx="7">≈$0.031</tspan><tspan fill="#3A6E2A" dx="7">₩42</tspan><tspan fill="#89877F" dx="7">│</tspan><tspan fill="#89877F" dx="7">세션 누적</tspan><tspan fill="#F0EFEC" dx="7" font-weight="700">↓ 18.6k tokens</tspan><tspan fill="#4AA130" dx="7">$0.412</tspan><tspan fill="#3A6E2A" dx="7">₩552</tspan></text>
+<rect x="24.5" y="116.5" width="771" height="40" rx="11" fill="#20201F" stroke="#363635"/>
+<text x="38" y="141" fill="#89877F">↩ 키로 보내기, ⌘↩ 키로 대기열에 추가하여 나중에 보내기</text>
+<circle cx="774" cy="136.5" r="7" fill="none" stroke="#F0EFEC" stroke-width="1.4"/>
+<rect x="771.5" y="134.0" width="5" height="5" rx="1" fill="#F0EFEC"/>
+<rect x="24" y="176" width="772" height="40" rx="10" fill="#212121"/>
+<text x="40" y="201" fill="#89877F" font-family="'SF Mono', Menlo, Consolas, monospace" font-size="13">my-project  main</text>
+<rect x="626" y="184" width="68" height="24" rx="6" fill="#373737"/>
+<text x="635" y="201" font-family="'SF Mono', Menlo, Consolas, monospace" font-size="13"><tspan fill="#6BD45F">+13</tspan><tspan fill="#EB445B" dx="4">−27</tspan></text>
+<rect x="700" y="184" width="62" height="24" rx="6" fill="#373737"/>
+<text x="709" y="201" fill="#F0EFEC" font-size="13">PR 생성</text>
+<text x="774" y="201" fill="#89877F" font-size="14">✕</text>
+<rect x="24" y="222" width="772" height="40" rx="10" fill="#212121"/>
+<text x="38" y="247" xml:space="preserve"><tspan fill="#4AA130" font-weight="700">✓</tspan><tspan fill="#89877F" dx="7">이번 턴</tspan><tspan fill="#B96748" dx="7" font-weight="700">↓ 2,047 tokens</tspan><tspan fill="#89877F" dx="7">26s</tspan><tspan fill="#4AA130" dx="7">$0.058</tspan><tspan fill="#3A6E2A" dx="7">₩78</tspan><tspan fill="#89877F" dx="7">│</tspan><tspan fill="#89877F" dx="7">세션 누적</tspan><tspan fill="#F0EFEC" dx="7" font-weight="700">↓ 19.4k tokens</tspan><tspan fill="#4AA130" dx="7">$0.439</tspan><tspan fill="#3A6E2A" dx="7">₩588</tspan></text>
+<rect x="24.5" y="268.5" width="771" height="40" rx="11" fill="#20201F" stroke="#363635"/>
+<text x="38" y="293" fill="#89877F">/ 입력 시 명령어</text>
+<text x="767" y="293.5" fill="#737371" font-size="15">↵</text>
+</g>
+</svg>
