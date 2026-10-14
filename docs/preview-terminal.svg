@@ -3,9 +3,9 @@
 <g font-family="'SF Mono', Menlo, Consolas, 'D2Coding', 'Noto Sans Mono CJK KR', monospace" font-size="15">
 <text x="24" y="42" xml:space="preserve"><tspan fill="#DD4E56" font-weight="700">✶</tspan><tspan fill="#505050"> 작업 중</tspan><tspan fill="#DD4E56" font-weight="700"> ↓ 1,284 tokens</tspan><tspan fill="#505050"> 12s</tspan><tspan fill="#4EBA65"> ≈$0.031</tspan><tspan fill="#357142"> ₩42</tspan><tspan fill="#505050"> │</tspan><tspan fill="#505050"> 세션 누적</tspan><tspan fill="#FFFFFF" font-weight="700"> ↓ 18.6k tokens</tspan><tspan fill="#4EBA65"> $0.412</tspan><tspan fill="#357142"> ₩552</tspan></text>
 <rect x="24" y="56" width="772" height="38" rx="6" fill="none" stroke="#8A8F91"/>
-<text x="38" y="80" fill="#FFFFFF">&gt; <tspan fill="#8A8F91">Try "refactor this function"</tspan></text>
+<text x="38" y="80" fill="#FFFFFF">&gt;</text>
 <text x="24" y="140" xml:space="preserve"><tspan fill="#4EBA65" font-weight="700">✓</tspan><tspan fill="#505050"> 이번 턴</tspan><tspan fill="#DD4E56" font-weight="700"> ↓ 2,047 tokens</tspan><tspan fill="#505050"> 26s</tspan><tspan fill="#4EBA65"> $0.058</tspan><tspan fill="#357142"> ₩78</tspan><tspan fill="#505050"> │</tspan><tspan fill="#505050"> 세션 누적</tspan><tspan fill="#FFFFFF" font-weight="700"> ↓ 19.4k tokens</tspan><tspan fill="#4EBA65"> $0.439</tspan><tspan fill="#357142"> ₩588</tspan></text>
 <rect x="24" y="154" width="772" height="38" rx="6" fill="none" stroke="#8A8F91"/>
-<text x="38" y="178" fill="#FFFFFF">&gt; <tspan fill="#8A8F91">Try "refactor this function"</tspan></text>
+<text x="38" y="178" fill="#FFFFFF">&gt;</text>
 </g>
 </svg>
