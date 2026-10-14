@@ -1,0 +1,14 @@
+{
+  "name": "dasom222g",
+  "description": "Claude Code plugins by dasom222g.",
+  "owner": {
+    "name": "dasom222g"
+  },
+  "plugins": [
+    {
+      "name": "token-meter",
+      "source": "./",
+      "description": "A band above the prompt with output tokens and API cost (USD, KRW) for this turn and this session."
+    }
+  ]
+}

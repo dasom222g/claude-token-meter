@@ -1,0 +1,27 @@
+{
+  "name": "token-meter",
+  "version": "0.1.0",
+  "description": "A band above the prompt with this turn's and this session's output tokens and their API cost in USD and KRW.",
+  "author": {
+    "name": "dasom222g"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "krwPerUsd": {
+      "type": "number",
+      "title": "KRW per USD",
+      "description": "Exchange rate for the ₩ figure. 0 fetches today's rate (1400 when offline).",
+      "default": 0
+    }
+  },
+  "homepage": "https://github.com/dasom222g/claude-token-meter",
+  "repository": "https://github.com/dasom222g/claude-token-meter",
+  "license": "MIT",
+  "keywords": [
+    "tokens",
+    "cost",
+    "usage",
+    "statusline",
+    "krw"
+  ]
+}
