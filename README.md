@@ -52,6 +52,7 @@ Claude가 이 플러그인을 설치해 달라는 요청을 받았을 때 따르
    ```bash
    claude plugin install token-meter@dasom222g --scope user
    ```
+   설치 끝에 `userConfig option not yet set` 안내가 나와도 그대로 둔다. 설정하지 않으면 그날 환율을 자동으로 받는다.
 4. `claude plugin list`에서 `token-meter@dasom222g`가 `enabled`인지 확인한다.
 5. 사용자에게 알린다: 지금 세션에 반영하려면 `/reload-plugins`를 직접 입력하거나 새 세션을 열어야 한다(슬래시 명령은 Claude가 대신 실행할 수 없다). 고정 환율을 원하면 `/plugin configure token-meter@dasom222g`로 설정한다.
 
