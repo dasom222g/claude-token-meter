@@ -1,6 +1,6 @@
 {
   "name": "token-meter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A band above the prompt with this turn's and this session's output tokens and their API cost in USD and KRW.",
   "author": {
     "name": "dasom222g"

@@ -26,6 +26,11 @@ const RATE_MAX_AGE_MS = 12 * 60 * 60 * 1000
 const RATE_URL = 'https://open.er-api.com/v6/latest/USD'
 const FRAMES = ['·', '✢', '✳', '✶', '✻', '✽', '✻', '✶', '✳', '✢']
 
+// The default dark theme's green and grey. Under dark-ansi the terminal's palette repaints them;
+// the band keeps these there and leaves the accent (`claude`) to the palette.
+const DARK_SUCCESS = '#4EBA65'
+const DARK_SUBTLE = '#505050'
+
 type Turn = {
   startedAt: number
   // The session ledger when the turn began; undefined where Claude Code keeps none.
@@ -50,6 +55,7 @@ const live = {
   sessionEstimatedOut: 0,
   sessionEstimatedUsd: 0,
   fixedRate: 0,
+  isDarkAnsi: false,
   streaming: new Map<string, Streaming>(),
 }
 
@@ -182,6 +188,15 @@ async function loadRate($: EngineInterface) {
   }
 }
 
+async function readTheme($: EngineInterface) {
+  try {
+    const row = (await $.config.list()).find((r) => r.key === 'theme')
+    live.isDarkAnsi = row?.value === 'dark-ansi'
+  } catch {
+    live.isDarkAnsi = false
+  }
+}
+
 function resetSession() {
   live.ticker?.cancel()
   live.ticker = null
@@ -202,9 +217,18 @@ export const register: Register = (on, options) => {
     live.sessionOut = kept.sessionOutTokens
     live.sessionUsd = kept.sessionCostUsd
     await loadRate($)
+    await readTheme($)
 
     return next(e)
   })
+
+  // Follow a theme change made mid-session; the .catch lets the change through whatever happens here.
+  on('config.set', { key: 'theme' }, async ($, e, next) => {
+    const result = await next(e)
+    await readTheme($)
+
+    return result
+  }).catch((_$, e, next) => next(e))
 
   // /clear, /resume and /branch reset $.state without a new session.start.
   // The .catch passes on to Claude Code: a failure here must not hold up /clear.
@@ -334,9 +358,12 @@ export const register: Register = (on, options) => {
     const { Box, Text } = $.ui.resolve(e)
 
     const isWorking = m.phase === 'working'
+    const isPinned = live.isDarkAnsi && e.surface === 'terminal'
+    const success = isPinned ? DARK_SUCCESS : 'success'
+    const subtle = isPinned ? DARK_SUBTLE : 'subtle'
     const isNarrow = e.props.bodyColumns < 78
     const glyph = isWorking ? FRAMES[m.frame % FRAMES.length] ?? '✻' : m.phase === 'done' ? '✓' : '○'
-    const glyphColor = isWorking ? 'claude' : m.phase === 'done' ? 'success' : 'subtle'
+    const glyphColor = isWorking ? 'claude' : m.phase === 'done' ? success : subtle
     const approx = m.isTurnEstimate ? '≈' : ''
     // While working the count is always partly streamed; once done, ≈ marks a request cut short.
     const approxTokens = m.isTurnEstimate && m.phase === 'done' ? '≈' : ''
@@ -346,18 +373,18 @@ export const register: Register = (on, options) => {
       <Box flexDirection={isNarrow ? 'column' : 'row'} columnGap={1}>
         <Box key="turn" flexDirection="row" columnGap={1}>
           <Text color={glyphColor} bold>{glyph}</Text>
-          <Text color="subtle">{isWorking ? '작업 중' : '이번 턴'}</Text>
+          <Text color={subtle}>{isWorking ? '작업 중' : '이번 턴'}</Text>
           <Text color="claude" bold>↓ {approxTokens}{formatTokens(m.turnOutTokens)} tokens</Text>
-          <Text color="subtle">{formatElapsed(m.turnElapsedMs)}</Text>
-          <Text color="success">{approx}{formatUsd(m.turnCostUsd)}</Text>
-          <Text color="success" dimColor>{formatKrw(m.turnCostUsd, krwPerUsd)}</Text>
+          <Text color={subtle}>{formatElapsed(m.turnElapsedMs)}</Text>
+          <Text color={success}>{approx}{formatUsd(m.turnCostUsd)}</Text>
+          <Text color={success} dimColor>{formatKrw(m.turnCostUsd, krwPerUsd)}</Text>
         </Box>
         <Box key="session" flexDirection="row" columnGap={1}>
-          <Text color="subtle">{isNarrow ? ' ' : '│'}</Text>
-          <Text color="subtle">세션 누적</Text>
+          <Text color={subtle}>{isNarrow ? ' ' : '│'}</Text>
+          <Text color={subtle}>세션 누적</Text>
           <Text bold>↓ {formatTokens(m.sessionOutTokens)} tokens</Text>
-          <Text color="success">{formatUsd(m.sessionCostUsd)}</Text>
-          <Text color="success" dimColor>{formatKrw(m.sessionCostUsd, krwPerUsd)}</Text>
+          <Text color={success}>{formatUsd(m.sessionCostUsd)}</Text>
+          <Text color={success} dimColor>{formatKrw(m.sessionCostUsd, krwPerUsd)}</Text>
         </Box>
       </Box>
     )

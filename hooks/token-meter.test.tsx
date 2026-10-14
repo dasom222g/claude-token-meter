@@ -165,3 +165,24 @@ test('a turn cut short keeps its streamed output as an estimate', async ($, on) 
     await ui.unmount()
   }
 })
+
+test('under dark-ansi the terminal keeps the dark theme green and grey, the desktop the theme keys', async ($, on) => {
+  mock.clock(on)
+  mock.store(on)
+  answerEngine(on)
+  on('config.list', () => ({
+    value: [{ key: 'theme', label: 'Theme', kind: 'enum', value: 'dark-ansi', provider: { plugin: 'engine', tier: 'core' } }],
+  }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+
+  const terminal = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect((await terminal.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('#505050')
+  expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#4EBA65')
+  expect((await terminal.find({ type: 'Text', text: '↓ 0 tokens' }))?.props.color).toBe('claude')
+  await terminal.unmount()
+
+  const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect((await desktop.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('subtle')
+  await desktop.unmount()
+})
