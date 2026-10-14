@@ -2,12 +2,9 @@
 
 Claude Code 프롬프트 바로 위에 이번 턴과 세션 전체의 출력 토큰, 비용(USD·KRW)을 보여주는 표시줄 플러그인.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/preview-dark.svg">
-  <img alt="작업 중과 턴이 끝난 뒤의 token-meter 표시줄" src="docs/preview-light.svg" width="820">
-</picture>
+<img alt="작업 중과 턴이 끝난 뒤의 token-meter 표시줄" src="docs/preview.svg" width="820">
 
-터미널에서 본 모습이다(위: 작업 중, 아래: 턴이 끝난 뒤). 색은 Claude Code 테마와 터미널 설정에 따라 조금 다를 수 있다. 터미널에서는 늘 보인다. 데스크탑 앱 Code 탭(로컬 세션)에서는 앱이 작업 중에만 이 자리를 그려서, 턴이 끝나면 사라진다.
+`dark-ansi` 테마의 터미널에서 본 모습이다(위: 작업 중, 아래: 턴이 끝난 뒤). 토큰 수의 강조색은 테마와 터미널 색 설정을 따라서 사람마다 다르게 보인다. 터미널에서는 늘 보인다. 데스크탑 앱 Code 탭(로컬 세션)에서는 앱이 작업 중에만 이 자리를 그려서, 턴이 끝나면 사라진다.
 
 ## 설치
 
