@@ -26,10 +26,17 @@ const RATE_MAX_AGE_MS = 12 * 60 * 60 * 1000
 const RATE_URL = 'https://open.er-api.com/v6/latest/USD'
 const FRAMES = ['·', '✢', '✳', '✶', '✻', '✽', '✻', '✶', '✳', '✢']
 
-// The default dark theme's green and grey. Under dark-ansi the terminal's palette repaints them;
-// the band keeps these there and leaves the accent (`claude`) to the palette.
-const DARK_SUCCESS = '#4EBA65'
-const DARK_SUBTLE = '#505050'
+type Palette = { success: string; subtle: string; faint: string }
+
+// Colors on the terminal, by theme. There `dimColor` turns a run grey, so the ₩ figure takes `faint`,
+// the theme's green at 55% over its background. Under dark-ansi the terminal's palette repaints
+// every key; the band keeps the default dark green and grey there and leaves the accent (`claude`)
+// to the palette. Other themes (daltonized, light-ansi, custom) keep the theme keys and `dimColor`.
+const TERMINAL_PALETTES: Readonly<Record<string, Palette>> = {
+  dark: { success: 'success', subtle: 'subtle', faint: '#357142' },
+  'dark-ansi': { success: '#4EBA65', subtle: '#505050', faint: '#357142' },
+  light: { success: 'success', subtle: 'subtle', faint: '#8BB692' },
+}
 
 type Turn = {
   startedAt: number
@@ -55,7 +62,7 @@ const live = {
   sessionEstimatedOut: 0,
   sessionEstimatedUsd: 0,
   fixedRate: 0,
-  isDarkAnsi: false,
+  theme: '',
   streaming: new Map<string, Streaming>(),
 }
 
@@ -191,9 +198,9 @@ async function loadRate($: EngineInterface) {
 async function readTheme($: EngineInterface) {
   try {
     const row = (await $.config.list()).find((r) => r.key === 'theme')
-    live.isDarkAnsi = row?.value === 'dark-ansi'
+    live.theme = typeof row?.value === 'string' ? row.value : ''
   } catch {
-    live.isDarkAnsi = false
+    live.theme = ''
   }
 }
 
@@ -358,9 +365,11 @@ export const register: Register = (on, options) => {
     const { Box, Text } = $.ui.resolve(e)
 
     const isWorking = m.phase === 'working'
-    const isPinned = live.isDarkAnsi && e.surface === 'terminal'
-    const success = isPinned ? DARK_SUCCESS : 'success'
-    const subtle = isPinned ? DARK_SUBTLE : 'subtle'
+    const palette = e.surface === 'terminal' ? TERMINAL_PALETTES[live.theme] : undefined
+    const success = palette?.success ?? 'success'
+    const subtle = palette?.subtle ?? 'subtle'
+    // The ₩ figure: a faint green where the palette has one, else the theme's own dimming.
+    const faint = palette === undefined ? { color: 'success', dimColor: true } : { color: palette.faint }
     const isNarrow = e.props.bodyColumns < 78
     const glyph = isWorking ? FRAMES[m.frame % FRAMES.length] ?? '✻' : m.phase === 'done' ? '✓' : '○'
     const glyphColor = isWorking ? 'claude' : m.phase === 'done' ? success : subtle
@@ -377,14 +386,14 @@ export const register: Register = (on, options) => {
           <Text color="claude" bold>↓ {approxTokens}{formatTokens(m.turnOutTokens)} tokens</Text>
           <Text color={subtle}>{formatElapsed(m.turnElapsedMs)}</Text>
           <Text color={success}>{approx}{formatUsd(m.turnCostUsd)}</Text>
-          <Text color={success} dimColor>{formatKrw(m.turnCostUsd, krwPerUsd)}</Text>
+          <Text {...faint}>{formatKrw(m.turnCostUsd, krwPerUsd)}</Text>
         </Box>
         <Box key="session" flexDirection="row" columnGap={1}>
           <Text color={subtle}>{isNarrow ? ' ' : '│'}</Text>
           <Text color={subtle}>세션 누적</Text>
           <Text bold>↓ {formatTokens(m.sessionOutTokens)} tokens</Text>
           <Text color={success}>{formatUsd(m.sessionCostUsd)}</Text>
-          <Text color={success} dimColor>{formatKrw(m.sessionCostUsd, krwPerUsd)}</Text>
+          <Text {...faint}>{formatKrw(m.sessionCostUsd, krwPerUsd)}</Text>
         </Box>
       </Box>
     )

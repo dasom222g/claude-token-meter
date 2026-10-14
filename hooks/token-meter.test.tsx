@@ -166,7 +166,7 @@ test('a turn cut short keeps its streamed output as an estimate', async ($, on) 
   }
 })
 
-test('under dark-ansi the terminal keeps the dark theme green and grey, the desktop the theme keys', async ($, on) => {
+test('under dark-ansi the terminal keeps the dark theme greens and grey, the desktop the theme keys', async ($, on) => {
   mock.clock(on)
   mock.store(on)
   answerEngine(on)
@@ -178,11 +178,15 @@ test('under dark-ansi the terminal keeps the dark theme green and grey, the desk
 
   const terminal = await $.ui.mount({ ...BAND, surface: 'terminal' })
   expect((await terminal.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('#505050')
-  expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#4EBA65')
+  expect((await terminal.find({ type: 'Text', text: '$0' }))?.props.color).toBe('#4EBA65')
+  // The ₩ figure: a faint green, not the grey that dimColor gives on the terminal.
+  expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#357142')
+  expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBeUndefined()
   expect((await terminal.find({ type: 'Text', text: '↓ 0 tokens' }))?.props.color).toBe('claude')
   await terminal.unmount()
 
   const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
   expect((await desktop.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('subtle')
+  expect((await desktop.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBe(true)
   await desktop.unmount()
 })
