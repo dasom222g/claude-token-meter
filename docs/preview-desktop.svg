@@ -4,8 +4,10 @@
 <rect x="24" y="24" width="772" height="40" rx="10" fill="#212121"/>
 <text x="38" y="49" xml:space="preserve"><tspan fill="#B96748" font-weight="700">✶</tspan><tspan fill="#89877F" dx="7">작업 중</tspan><tspan fill="#B96748" dx="7" font-weight="700">↓ 1,284 tokens</tspan><tspan fill="#89877F" dx="7">12s</tspan><tspan fill="#4AA130" dx="7">≈$0.031</tspan><tspan fill="#3A6E2A" dx="7">₩42</tspan><tspan fill="#89877F" dx="7">│</tspan><tspan fill="#89877F" dx="7">세션 누적</tspan><tspan fill="#F0EFEC" dx="7" font-weight="700">↓ 18.6k tokens</tspan><tspan fill="#4AA130" dx="7">$0.412</tspan><tspan fill="#3A6E2A" dx="7">₩552</tspan></text>
 <rect x="24.5" y="70.5" width="771" height="40" rx="11" fill="#20201F" stroke="#363635"/>
+<text x="38" y="95" fill="#89877F">↩ 키로 보내기</text>
 <rect x="24" y="130" width="772" height="40" rx="10" fill="#212121"/>
 <text x="38" y="155" xml:space="preserve"><tspan fill="#4AA130" font-weight="700">✓</tspan><tspan fill="#89877F" dx="7">이번 턴</tspan><tspan fill="#B96748" dx="7" font-weight="700">↓ 2,047 tokens</tspan><tspan fill="#89877F" dx="7">26s</tspan><tspan fill="#4AA130" dx="7">$0.058</tspan><tspan fill="#3A6E2A" dx="7">₩78</tspan><tspan fill="#89877F" dx="7">│</tspan><tspan fill="#89877F" dx="7">세션 누적</tspan><tspan fill="#F0EFEC" dx="7" font-weight="700">↓ 19.4k tokens</tspan><tspan fill="#4AA130" dx="7">$0.439</tspan><tspan fill="#3A6E2A" dx="7">₩588</tspan></text>
 <rect x="24.5" y="176.5" width="771" height="40" rx="11" fill="#20201F" stroke="#363635"/>
+<text x="38" y="201" fill="#89877F">/ 입력 시 명령어</text>
 </g>
 </svg>
