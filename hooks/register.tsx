@@ -7,10 +7,12 @@ import { costOf, estimateTokens, outputCostOf } from './pricing'
 
 const EMPTY: Meter = {
   phase: 'idle',
+  turnInTokens: 0,
   turnOutTokens: 0,
   turnCostUsd: 0,
   turnElapsedMs: 0,
   isTurnEstimate: false,
+  sessionInTokens: 0,
   sessionOutTokens: 0,
   sessionCostUsd: 0,
   frame: 0,
@@ -26,22 +28,24 @@ const RATE_MAX_AGE_MS = 12 * 60 * 60 * 1000
 const RATE_URL = 'https://open.er-api.com/v6/latest/USD'
 const FRAMES = ['·', '✢', '✳', '✶', '✻', '✽', '✻', '✶', '✳', '✢']
 
-type Palette = { success: string; subtle: string; faint: string }
+type Palette = { success: string; subtle: string; faint: string; warning: string }
 
 // Colors on the terminal, by theme. There `dimColor` turns a run grey, so the ₩ figure takes `faint`,
 // the theme's green at 55% over its background. Under dark-ansi the terminal's palette repaints
-// every key; the band keeps the default dark green and grey there and leaves the accent (`claude`)
-// to the palette. Other themes (daltonized, light-ansi, custom) keep the theme keys and `dimColor`.
+// every key; the band keeps the default dark green, grey and yellow (`warning`, the input count) there
+// and leaves the accent (`claude`) to the palette. Other themes (daltonized, light-ansi, custom)
+// keep the theme keys and `dimColor`.
 const TERMINAL_PALETTES: Readonly<Record<string, Palette>> = {
-  dark: { success: 'success', subtle: 'subtle', faint: '#357142' },
-  'dark-ansi': { success: '#4EBA65', subtle: '#505050', faint: '#357142' },
-  light: { success: 'success', subtle: 'subtle', faint: '#8BB692' },
+  dark: { success: 'success', subtle: 'subtle', faint: '#357142', warning: 'warning' },
+  'dark-ansi': { success: '#4EBA65', subtle: '#505050', faint: '#357142', warning: '#FFC107' },
+  light: { success: 'success', subtle: 'subtle', faint: '#8BB692', warning: 'warning' },
 }
 
 type Turn = {
   startedAt: number
   // The session ledger when the turn began; undefined where Claude Code keeps none.
   ledgerAtStart: number | undefined
+  confirmedIn: number
   confirmedOut: number
   confirmedUsd: number
   // Streamed output of requests cut short (escape), which the API never reported.
@@ -57,6 +61,7 @@ const live = {
   turn: null as Turn | null,
   ticker: null as Timer | null,
   // Confirmed session figures; the meter's session fields add what is still streaming.
+  sessionIn: 0,
   sessionOut: 0,
   sessionUsd: 0,
   sessionEstimatedOut: 0,
@@ -64,6 +69,11 @@ const live = {
   fixedRate: 0,
   theme: '',
   streaming: new Map<string, Streaming>(),
+}
+
+// Every token the request read: uncached, served by the prompt cache, or written to it.
+function inputOf(usage: ModelUsage): number {
+  return usage.input_tokens + usage.cache_read_input_tokens + usage.cache_creation_input_tokens
 }
 
 async function ledger($: EngineInterface): Promise<number | undefined> {
@@ -108,10 +118,12 @@ async function tick($: EngineInterface) {
   await update($, meter, (m): Meter => ({
     ...m,
     phase: 'working',
+    turnInTokens: turn.confirmedIn,
     turnOutTokens: turn.shownOut,
     turnCostUsd: turn.confirmedUsd + turn.estimatedUsd + flowing.usd,
     turnElapsedMs: now - turn.startedAt,
     isTurnEstimate: live.streaming.size > 0 || turn.estimatedOut > 0,
+    sessionInTokens: live.sessionIn,
     sessionOutTokens: live.sessionOut + live.sessionEstimatedOut + shownExtra,
     sessionCostUsd: live.sessionUsd + live.sessionEstimatedUsd + flowing.usd,
     frame: m.frame + 1,
@@ -123,10 +135,12 @@ async function settleStep($: EngineInterface, usage: ModelUsage, model: string) 
   const total = await ledger($)
   const turn = live.turn
 
+  live.sessionIn += inputOf(usage)
   live.sessionOut += usage.output_tokens
   live.sessionUsd = total ?? live.sessionUsd + stepUsd
 
   if (turn !== null) {
+    turn.confirmedIn += inputOf(usage)
     turn.confirmedOut += usage.output_tokens
     turn.confirmedUsd = turn.ledgerAtStart !== undefined && total !== undefined
       ? Math.max(0, total - turn.ledgerAtStart)
@@ -142,6 +156,7 @@ async function settleStep($: EngineInterface, usage: ModelUsage, model: string) 
 async function showSession($: EngineInterface) {
   await update($, meter, (m): Meter => ({
     ...m,
+    sessionInTokens: live.sessionIn,
     sessionOutTokens: live.sessionOut + live.sessionEstimatedOut,
     sessionCostUsd: live.sessionUsd + live.sessionEstimatedUsd,
   }))
@@ -208,6 +223,7 @@ function resetSession() {
   live.ticker?.cancel()
   live.ticker = null
   live.turn = null
+  live.sessionIn = 0
   live.sessionOut = 0
   live.sessionUsd = 0
   live.sessionEstimatedOut = 0
@@ -221,6 +237,8 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     // After a reload, pick the session figures back up from $.state.
     const kept = await read($, meter)
+    // A meter kept from before input was counted has no input fields.
+    live.sessionIn = kept.sessionInTokens ?? 0
     live.sessionOut = kept.sessionOutTokens
     live.sessionUsd = kept.sessionCostUsd
     await loadRate($)
@@ -256,6 +274,7 @@ export const register: Register = (on, options) => {
     live.turn = {
       startedAt: await $.clock.now(),
       ledgerAtStart: await ledger($),
+      confirmedIn: 0,
       confirmedOut: 0,
       confirmedUsd: 0,
       estimatedOut: 0,
@@ -265,6 +284,7 @@ export const register: Register = (on, options) => {
     await update($, meter, (m): Meter => ({
       ...m,
       phase: 'working',
+      turnInTokens: 0,
       turnOutTokens: 0,
       turnCostUsd: 0,
       turnElapsedMs: 0,
@@ -338,10 +358,12 @@ export const register: Register = (on, options) => {
     await update($, meter, (m): Meter => ({
       ...m,
       phase: 'done',
+      turnInTokens: done.confirmedIn,
       turnOutTokens: done.confirmedOut + done.estimatedOut,
       turnCostUsd: done.confirmedUsd + done.estimatedUsd,
       turnElapsedMs: e.durationMs,
       isTurnEstimate: done.estimatedOut > 0,
+      sessionInTokens: live.sessionIn,
       sessionOutTokens: live.sessionOut + live.sessionEstimatedOut,
       sessionCostUsd: live.sessionUsd + live.sessionEstimatedUsd,
     }))
@@ -368,9 +390,10 @@ export const register: Register = (on, options) => {
     const palette = e.surface === 'terminal' ? TERMINAL_PALETTES[live.theme] : undefined
     const success = palette?.success ?? 'success'
     const subtle = palette?.subtle ?? 'subtle'
+    const warning = palette?.warning ?? 'warning'
     // The ₩ figure: a faint green where the palette has one, else the theme's own dimming.
     const faint = palette === undefined ? { color: 'success', dimColor: true } : { color: palette.faint }
-    const isNarrow = e.props.bodyColumns < 78
+    const isNarrow = e.props.bodyColumns < 96
     const glyph = isWorking ? FRAMES[m.frame % FRAMES.length] ?? '✻' : m.phase === 'done' ? '✓' : '○'
     const glyphColor = isWorking ? 'claude' : m.phase === 'done' ? success : subtle
     const approx = m.isTurnEstimate ? '≈' : ''
@@ -383,6 +406,7 @@ export const register: Register = (on, options) => {
         <Box key="turn" flexDirection="row" columnGap={1}>
           <Text color={glyphColor} bold>{glyph}</Text>
           <Text color={subtle}>{isWorking ? '작업 중' : '이번 턴'}</Text>
+          <Text color={warning}>↑ {formatTokens(m.turnInTokens ?? 0)}</Text>
           <Text color="claude" bold>↓ {approxTokens}{formatTokens(m.turnOutTokens)} tokens</Text>
           <Text color={subtle}>{formatElapsed(m.turnElapsedMs)}</Text>
           <Text color={success}>{approx}{formatUsd(m.turnCostUsd)}</Text>
@@ -391,7 +415,8 @@ export const register: Register = (on, options) => {
         <Box key="session" flexDirection="row" columnGap={1}>
           <Text color={subtle}>{isNarrow ? ' ' : '│'}</Text>
           <Text color={subtle}>세션 누적</Text>
-          <Text bold>↓ {formatTokens(m.sessionOutTokens)} tokens</Text>
+          <Text color={warning}>↑ {formatTokens(m.sessionInTokens ?? 0)}</Text>
+          <Text color="claude" bold>↓ {formatTokens(m.sessionOutTokens)} tokens</Text>
           <Text color={success}>{formatUsd(m.sessionCostUsd)}</Text>
           <Text {...faint}>{formatKrw(m.sessionCostUsd, krwPerUsd)}</Text>
         </Box>

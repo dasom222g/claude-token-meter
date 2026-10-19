@@ -55,7 +55,8 @@ test('the band shows zeros before any turn, on every surface', async ($, on) => 
 
     expect((await ui.find({ text: /이번 턴/ }))).toBeDefined()
     expect((await ui.find({ text: /세션 누적/ }))).toBeDefined()
-    expect((await ui.find({ text: '↓ 0 tokens' }))).toBeDefined()
+    expect((await ui.find({ text: '↓ 0' }))).toBeDefined()
+    expect((await ui.find({ text: '↑ 0' }))).toBeDefined()
     expect((await ui.find({ text: '₩0' }))).toBeDefined()
     await ui.unmount()
   }
@@ -94,7 +95,7 @@ test('a turn counts up while working and keeps its figures once done', async ($,
 
   for (const surface of SURFACES) {
     const ui = await $.ui.mount({ ...BAND, surface })
-    expect((await ui.find({ text: '↓ 600 tokens' }))).toBeDefined()
+    expect((await ui.find({ text: '↓ 600' }))).toBeDefined()
     await ui.unmount()
   }
 
@@ -110,6 +111,9 @@ test('a turn counts up while working and keeps its figures once done', async ($,
     // The session total is the whole ledger.
     expect((await ui.find({ text: '$0.520' }))).toBeDefined()
     expect((await ui.find({ type: 'Box', key: 'session' }))?.text).toMatch(/↓ 600 tokens/)
+    // Input adds the uncached, cache-read and cache-write tokens: 1,000 + 20,000 + 0.
+    expect((await ui.find({ type: 'Box', key: 'turn' }))?.text).toMatch(/↑ 21\.0k/)
+    expect((await ui.find({ type: 'Box', key: 'session' }))?.text).toMatch(/↑ 21\.0k/)
     await ui.unmount()
   }
 })
@@ -166,7 +170,7 @@ test('a turn cut short keeps its streamed output as an estimate', async ($, on) 
   }
 })
 
-test('under dark-ansi the terminal keeps the dark theme greens and grey, the desktop the theme keys', async ($, on) => {
+test('under dark-ansi the terminal keeps the dark theme greens, grey and yellow, the desktop the theme keys', async ($, on) => {
   mock.clock(on)
   mock.store(on)
   answerEngine(on)
@@ -183,10 +187,13 @@ test('under dark-ansi the terminal keeps the dark theme greens and grey, the des
   expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#357142')
   expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBeUndefined()
   expect((await terminal.find({ type: 'Text', text: '↓ 0 tokens' }))?.props.color).toBe('claude')
+  // The input count: the dark theme's yellow.
+  expect((await terminal.find({ type: 'Text', text: '↑ 0' }))?.props.color).toBe('#FFC107')
   await terminal.unmount()
 
   const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
   expect((await desktop.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('subtle')
   expect((await desktop.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBe(true)
+  expect((await desktop.find({ type: 'Text', text: '↑ 0' }))?.props.color).toBe('warning')
   await desktop.unmount()
 })
