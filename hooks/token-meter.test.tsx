@@ -169,7 +169,31 @@ test('a turn cut short keeps its streamed output as an estimate', async ($, on) 
   }
 })
 
-test('under a dark theme the terminal and the desktop draw the band in the same colors', async ($, on) => {
+test('under dark-ansi the terminal keeps the dark theme greens and grey, the desktop the theme keys', async ($, on) => {
+  mock.clock(on)
+  mock.store(on)
+  answerEngine(on)
+  on('config.list', () => ({
+    value: [{ key: 'theme', label: 'Theme', kind: 'enum', value: 'dark-ansi', provider: { plugin: 'engine', tier: 'core' } }],
+  }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+
+  const terminal = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect((await terminal.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('#505050')
+  expect((await terminal.find({ type: 'Text', text: '$0' }))?.props.color).toBe('#4EBA65')
+  // The ₩ figure: a faint green, not the grey that dimColor gives on the terminal.
+  expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#357142')
+  expect((await terminal.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBeUndefined()
+  await terminal.unmount()
+
+  const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect((await desktop.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('subtle')
+  expect((await desktop.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBe(true)
+  await desktop.unmount()
+})
+
+test("both token counts take the theme's accent on every surface", async ($, on) => {
   mock.clock(on)
   mock.store(on)
   answerEngine(on)
@@ -181,33 +205,11 @@ test('under a dark theme the terminal and the desktop draw the band in the same 
 
   for (const surface of SURFACES) {
     const ui = await $.ui.mount({ ...BAND, surface })
-    expect((await ui.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('#505050')
-    expect((await ui.find({ type: 'Text', text: '$0' }))?.props.color).toBe('#4EBA65')
-    // The ₩ figure: a faint green, not the grey that dimColor gives on the terminal.
-    expect((await ui.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#357142')
-    expect((await ui.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBeUndefined()
-    // This turn's count in Claude's orange, the session's in red.
     const counts = await ui.findAll({ type: 'Text', text: '↓ 0 tokens' })
     expect(counts.length).toBe(2)
-    expect(counts[0]?.props.color).toBe('#D77757')
-    expect(counts[1]?.props.color).toBe('#DD4E56')
+    for (const count of counts) {
+      expect(count.props.color).toBe('claude')
+    }
     await ui.unmount()
   }
-})
-
-test('under a theme with no fixed colors the band keeps the theme keys', async ($, on) => {
-  mock.clock(on)
-  mock.store(on)
-  answerEngine(on)
-  on('config.list', () => ({
-    value: [{ key: 'theme', label: 'Theme', kind: 'enum', value: 'dark-daltonized', provider: { plugin: 'engine', tier: 'core' } }],
-  }))
-
-  await $.session.start({ cwd: '/tmp', surface: 'desktop', isInteractive: true })
-
-  const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
-  expect((await desktop.find({ type: 'Text', text: '세션 누적' }))?.props.color).toBe('subtle')
-  expect((await desktop.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBe(true)
-  expect((await desktop.find({ type: 'Text', text: '↓ 0 tokens' }))?.props.color).toBe('claude')
-  await desktop.unmount()
 })
