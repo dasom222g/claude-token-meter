@@ -186,12 +186,11 @@ test('under a dark theme the terminal and the desktop draw the band in the same 
     // The ₩ figure: a faint green, not the grey that dimColor gives on the terminal.
     expect((await ui.find({ type: 'Text', text: '₩0' }))?.props.color).toBe('#357142')
     expect((await ui.find({ type: 'Text', text: '₩0' }))?.props.dimColor).toBeUndefined()
-    // The turn's and the session's token counts share one red.
+    // This turn's count in Claude's orange, the session's in red.
     const counts = await ui.findAll({ type: 'Text', text: '↓ 0 tokens' })
     expect(counts.length).toBe(2)
-    for (const count of counts) {
-      expect(count.props.color).toBe('#DD4E56')
-    }
+    expect(counts[0]?.props.color).toBe('#D77757')
+    expect(counts[1]?.props.color).toBe('#DD4E56')
     await ui.unmount()
   }
 })
