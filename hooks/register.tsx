@@ -28,17 +28,19 @@ const RATE_MAX_AGE_MS = 12 * 60 * 60 * 1000
 const RATE_URL = 'https://open.er-api.com/v6/latest/USD'
 const FRAMES = ['·', '✢', '✳', '✶', '✻', '✽', '✻', '✶', '✳', '✢']
 
-type Palette = { success: string; subtle: string; faint: string; warning: string }
+type Palette = { success: string; subtle: string; faint: string; accent: string }
 
-// Colors on the terminal, by theme. There `dimColor` turns a run grey, so the ₩ figure takes `faint`,
-// the theme's green at 55% over its background. Under dark-ansi the terminal's palette repaints
-// every key; the band keeps the default dark green, grey and yellow (`warning`, the input count) there
-// and leaves the accent (`claude`) to the palette. Other themes (daltonized, light-ansi, custom)
-// keep the theme keys and `dimColor`.
-const TERMINAL_PALETTES: Readonly<Record<string, Palette>> = {
-  dark: { success: 'success', subtle: 'subtle', faint: '#357142', warning: 'warning' },
-  'dark-ansi': { success: '#4EBA65', subtle: '#505050', faint: '#357142', warning: '#FFC107' },
-  light: { success: 'success', subtle: 'subtle', faint: '#8BB692', warning: 'warning' },
+// Colors by theme, the same on the terminal and in the desktop app, so the band looks alike in both.
+// `dimColor` turns a run grey on the terminal, so the ₩ figure takes `faint`, the theme's green at 55%
+// over its background. Under dark-ansi the terminal's palette repaints every key, and the desktop
+// resolves the keys to its own colors; fixed values keep the dark theme's green and grey and a red
+// accent in both. Other themes (daltonized, light-ansi, custom) keep the theme keys, `dimColor` and
+// the `claude` accent, which each surface draws its own way.
+const DARK: Palette = { success: '#4EBA65', subtle: '#505050', faint: '#357142', accent: '#DD4E56' }
+const PALETTES: Readonly<Record<string, Palette>> = {
+  dark: DARK,
+  'dark-ansi': DARK,
+  light: { success: 'success', subtle: 'subtle', faint: '#8BB692', accent: '#C4313A' },
 }
 
 type Turn = {
@@ -387,15 +389,15 @@ export const register: Register = (on, options) => {
     const { Box, Text } = $.ui.resolve(e)
 
     const isWorking = m.phase === 'working'
-    const palette = e.surface === 'terminal' ? TERMINAL_PALETTES[live.theme] : undefined
+    const palette = PALETTES[live.theme]
     const success = palette?.success ?? 'success'
     const subtle = palette?.subtle ?? 'subtle'
-    const warning = palette?.warning ?? 'warning'
+    const accent = palette?.accent ?? 'claude'
     // The ₩ figure: a faint green where the palette has one, else the theme's own dimming.
     const faint = palette === undefined ? { color: 'success', dimColor: true } : { color: palette.faint }
-    const isNarrow = e.props.bodyColumns < 96
+    const isNarrow = e.props.bodyColumns < 78
     const glyph = isWorking ? FRAMES[m.frame % FRAMES.length] ?? '✻' : m.phase === 'done' ? '✓' : '○'
-    const glyphColor = isWorking ? 'claude' : m.phase === 'done' ? success : subtle
+    const glyphColor = isWorking ? accent : m.phase === 'done' ? success : subtle
     const approx = m.isTurnEstimate ? '≈' : ''
     // While working the count is always partly streamed; once done, ≈ marks a request cut short.
     const approxTokens = m.isTurnEstimate && m.phase === 'done' ? '≈' : ''
@@ -406,8 +408,7 @@ export const register: Register = (on, options) => {
         <Box key="turn" flexDirection="row" columnGap={1}>
           <Text color={glyphColor} bold>{glyph}</Text>
           <Text color={subtle}>{isWorking ? '작업 중' : '이번 턴'}</Text>
-          <Text color={warning}>↑ {formatTokens(m.turnInTokens ?? 0)}</Text>
-          <Text color="claude" bold>↓ {approxTokens}{formatTokens(m.turnOutTokens)} tokens</Text>
+          <Text color={accent} bold>↓ {approxTokens}{formatTokens((m.turnInTokens ?? 0) + m.turnOutTokens)} tokens</Text>
           <Text color={subtle}>{formatElapsed(m.turnElapsedMs)}</Text>
           <Text color={success}>{approx}{formatUsd(m.turnCostUsd)}</Text>
           <Text {...faint}>{formatKrw(m.turnCostUsd, krwPerUsd)}</Text>
@@ -415,8 +416,7 @@ export const register: Register = (on, options) => {
         <Box key="session" flexDirection="row" columnGap={1}>
           <Text color={subtle}>{isNarrow ? ' ' : '│'}</Text>
           <Text color={subtle}>세션 누적</Text>
-          <Text color={warning}>↑ {formatTokens(m.sessionInTokens ?? 0)}</Text>
-          <Text color="claude" bold>↓ {formatTokens(m.sessionOutTokens)} tokens</Text>
+          <Text color={accent} bold>↓ {formatTokens((m.sessionInTokens ?? 0) + m.sessionOutTokens)} tokens</Text>
           <Text color={success}>{formatUsd(m.sessionCostUsd)}</Text>
           <Text {...faint}>{formatKrw(m.sessionCostUsd, krwPerUsd)}</Text>
         </Box>
